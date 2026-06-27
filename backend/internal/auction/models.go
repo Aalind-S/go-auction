@@ -22,3 +22,13 @@ type Auction struct {
 	StartsAt    time.Time     `gorm:"not null"`
 	EndsAt      time.Time     `gorm:"not null"`
 }
+
+type AuctionParticipant struct {
+	AuctionID uuid.UUID `gorm:"primaryKey"`
+	Auction   Auction   `gorm:"foreignKey:AuctionID;references:ID"`
+	UserID    uuid.UUID `gorm:"primaryKey"`
+	User      user.User `gorm:"foreignKey:UserID;references:ID"`
+
+	JoinedAt            time.Time `gorm:"not null;default:CURRENT_TIMESTAMP"`
+	NotificationEnabled bool      `gorm:"not null;default:true"`
+}
