@@ -2,8 +2,8 @@ package database
 
 import (
 	"errors"
-	"os"
 
+	"github.com/Aalind-S/go-auction/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -11,7 +11,7 @@ import (
 var DB *gorm.DB
 
 func InitializeDatabase() error {
-	dsn := os.Getenv("DB_URL")
+	dsn := config.AppConfig.DatabaseURL
 	if dsn == "" {
 		return errors.New("DB_URL is not set")
 	}

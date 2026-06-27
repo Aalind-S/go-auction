@@ -3,11 +3,14 @@ package main
 import (
 	"log"
 
+	"github.com/Aalind-S/go-auction/config"
 	"github.com/Aalind-S/go-auction/database"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+
+	config.LoadEnv()
 	err := database.InitializeDatabase()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
@@ -18,6 +21,5 @@ func main() {
 			"message": "Hello, World!",
 		})
 	})
-	r.Run(":8080")
-
+	r.Run(":" + config.AppConfig.APP_PORT)
 }
