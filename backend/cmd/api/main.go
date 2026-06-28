@@ -11,7 +11,13 @@ import (
 func main() {
 
 	config.LoadEnv()
-	err := database.InitializeDatabase()
+
+	err := database.RunMigrations(config.AppConfig.DatabaseURL, "file://migrations")
+	if err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
+
+	err = database.InitializeDatabase()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
