@@ -5,6 +5,7 @@ import (
 
 	"github.com/Aalind-S/go-auction/config"
 	"github.com/Aalind-S/go-auction/database"
+	"github.com/Aalind-S/go-auction/internal/auction"
 	"github.com/Aalind-S/go-auction/internal/auth"
 	"github.com/gin-gonic/gin"
 )
@@ -37,6 +38,7 @@ func main() {
 	protected := api.Group("")
 	protected.Use(auth.RequireAuth())
 	auth.RegisterProtectedRoutes(protected)
+	auction.RegisterAuctionRoutes(protected)
 
 	router.Run(":" + config.AppConfig.APP_PORT)
 }
