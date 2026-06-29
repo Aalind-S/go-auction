@@ -5,6 +5,7 @@ import (
 
 	"github.com/Aalind-S/go-auction/config"
 	"github.com/Aalind-S/go-auction/database"
+	"github.com/Aalind-S/go-auction/internal/auth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,11 +22,21 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
+
+	router := gin.Default()
+
+	api := router.Group("/api")
+	api.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "Hello, World!",
+			"status": "ok",
 		})
 	})
-	r.Run(":" + config.AppConfig.APP_PORT)
+
+	auth.RegisterPublicRoutes(api.Group("/auth"))
+
+	protected := api.Group("")
+	protected.Use(auth.RequireAuth())
+	auth.RegisterProtectedRoutes(protected)
+
+	router.Run(":" + config.AppConfig.APP_PORT)
 }
