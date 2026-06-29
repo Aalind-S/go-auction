@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS bids;
+DROP TABLE IF EXISTS auction_participants;
+DROP TABLE IF EXISTS auctions;
+DROP TABLE IF EXISTS users;
