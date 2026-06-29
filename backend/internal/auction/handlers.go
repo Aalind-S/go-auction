@@ -3,8 +3,8 @@ package auction
 import (
 	"net/http"
 
-	"github.com/Aalind-S/go-auction/database"
 	"github.com/gin-gonic/gin"
+	uuid "github.com/google/uuid"
 )
 
 func RegisterAuction(c *gin.Context) {
@@ -21,6 +21,17 @@ func RegisterAuction(c *gin.Context) {
 	}
 
 	// Proceed with creating the auction
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userID, ok := userIDValue.(uuid.UUID)
+	if !ok {
+		c.JSON(500, gin.H{"error": "invalid user context"})
+		return
+	}
 
 	newAuction := Auction{
 		Title:       req.Title,
@@ -28,9 +39,11 @@ func RegisterAuction(c *gin.Context) {
 		StartingBid: req.StartingBid,
 		StartsAt:    startsAt,
 		EndsAt:      endsAt,
+		SellerID:    userID,
+		CurrentBid:  req.StartingBid,
 	}
 
-	err = database.DB.Create(&newAuction).Error
+	err = CreateAuction(&newAuction)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to create auction"})
 		return
