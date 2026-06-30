@@ -59,4 +59,12 @@ func ListAuctions(c *gin.Context) {
 		return
 	}
 
+	auctions, err := ListAuctionService(req)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to list auctions"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"auctions": toAuctionResponse(auctions),
+	})
 }

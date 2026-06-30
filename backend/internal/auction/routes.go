@@ -7,4 +7,5 @@ import (
 func RegisterAuctionRoutes(router *gin.RouterGroup) {
 	auctionGroup := router.Group("/auction")
 	auctionGroup.POST("/create", RegisterAuction)
+	auctionGroup.GET("/", ListAuctions)
 }

@@ -40,3 +40,29 @@ type AuctionListRequest struct {
 	DateFrom string `form:"date_from" json:"date_from"`
 	// Add any filters or pagination parameters if needed
 }
+
+type AuctionResponse struct {
+	ID          uuid.UUID `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	StartingBid float64   `json:"starting_bid"`
+	Status      string    `json:"status"`
+	StartsAt    string    `json:"starts_at"`
+	EndsAt      string    `json:"ends_at"`
+}
+
+func toAuctionResponse(auctions []Auction) []AuctionResponse {
+	var responses []AuctionResponse
+	for _, auction := range auctions {
+		responses = append(responses, AuctionResponse{
+			ID:          auction.ID,
+			Title:       auction.Title,
+			Description: auction.Description,
+			StartingBid: auction.StartingBid,
+			Status:      string(auction.Status),
+			StartsAt:    auction.StartsAt.String(),
+			EndsAt:      auction.EndsAt.String(),
+		})
+	}
+	return responses
+}
