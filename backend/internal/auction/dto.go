@@ -31,3 +31,12 @@ func toRegisterAuctionResponse(a Auction) RegisterAuctionResponse {
 		EndsAt:      a.EndsAt.String(),
 	}
 }
+
+type AuctionListRequest struct {
+	Page     int    `form:"page" json:"page"`
+	Limit    int    `form:"limit" json:"limit"`
+	Status   string `form:"status" json:"status"`
+	Search   string `form:"search" json:"search"`
+	DateFrom string `form:"date_from" json:"date_from"`
+	// Add any filters or pagination parameters if needed
+}

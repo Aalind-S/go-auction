@@ -51,3 +51,12 @@ func RegisterAuction(c *gin.Context) {
 	c.JSON(http.StatusCreated, toRegisterAuctionResponse(newAuction))
 
 }
+
+func ListAuctions(c *gin.Context) {
+	var req AuctionListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+}

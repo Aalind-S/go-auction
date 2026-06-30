@@ -33,3 +33,21 @@ func ValidateAuction(request RegisterAuctionRequest) (time.Time, time.Time, erro
 	}
 	return startsAt, endsAt, nil
 }
+
+func ListAuctionService(req AuctionListRequest) ([]Auction, error) {
+	// Implement the logic to list auctions based on the request parameters
+	// For example, you can query the database with filters, pagination, etc.
+
+	if req.Page < 1 {
+		req.Page = 1
+	}
+	if req.Limit < 1 {
+		req.Limit = 10
+	}
+	// should also validate the inputs honestly, but for now I will just pass it to the repository layer
+	auctions, err := ListAuction(req)
+	if err != nil {
+		return nil, err
+	}
+	return auctions, nil
+}
