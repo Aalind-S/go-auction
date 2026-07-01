@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BidSphere | Premium Real-Time Auctions</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background Elements for Glassmorphic Glows -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Global Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="logo-icon">
+                    <i data-lucide="gavel"></i>
+                </div>
+                <span class="brand-name">BidSphere</span>
+            </div>
+            
+            <nav class="nav-links" id="nav-links">
+                <!-- Toggleable links based on auth state -->
+                <button id="nav-dashboard-btn" class="nav-btn active">
+                    <i data-lucide="layout-dashboard"></i> Dashboard
+                </button>
+                <button id="nav-create-btn" class="nav-btn auth-only">
+                    <i data-lucide="plus-circle"></i> Create Auction
+                </button>
+            </nav>
+
+            <div class="user-menu" id="user-menu">
+                <!-- Dynamic based on login status -->
+                <div id="user-anonymous" class="auth-anonymous">
+                    <button id="header-login-btn" class="btn btn-secondary">Sign In</button>
+                    <button id="header-register-btn" class="btn btn-primary">Join Now</button>
+                </div>
+                <div id="user-authenticated" class="auth-authenticated hidden">
+                    <div class="user-badge">
+                        <div class="avatar">
+                            <span id="avatar-initials">U</span>
+                        </div>
+                        <div class="user-info-text">
+                            <span id="username-display" class="username">Guest</span>
+                            <span id="user-email-display" class="user-role">Bidder</span>
+                        </div>
+                    </div>
+                    <button id="logout-btn" class="btn-logout" title="Sign Out">
+                        <i data-lucide="log-out"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="app-main">
+        <!-- HERO SECTION (Visible when not logged in or as a welcome) -->
+        <section id="hero-banner" class="hero-section">
+            <div class="hero-content">
+                <span class="hero-badge">Modern Auction Platform</span>
+                <h1>Discover, Bid, and Sell in Real-Time</h1>
+                <p>Join the next generation of decentralized bidding. Premium assets, transparent pricing, and instant execution.</p>
+                <div class="hero-actions">
+                    <button id="hero-explore-btn" class="btn btn-primary btn-lg">Explore Auctions</button>
+                    <button id="hero-learn-btn" class="btn btn-secondary btn-lg btn-outline">How it Works</button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="glass-card visual-card">
+                    <div class="card-header">
+                        <span class="badge active-badge">Live Auction</span>
+                        <div class="timer"><i data-lucide="clock"></i> 04h : 12m : 45s</div>
+                    </div>
+                    <h3>Vintage Rolex Submariner (1972)</h3>
+                    <div class="bid-info">
+                        <div>
+                            <span class="label">Current Bid</span>
+                            <span class="valueHighlight">$9,400.00</span>
+                        </div>
+                        <div>
+                            <span class="label">Bidders</span>
+                            <span class="value">14 active</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-block btn-disabled" disabled>Sign In to Bid</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- AUTH SCREEN (Hidden by default, shown when signing in) -->
+        <section id="auth-screen" class="auth-screen hidden">
+            <div class="glass-card auth-card">
+                <!-- Tab Headers -->
+                <div class="auth-tabs">
+                    <button id="tab-login" class="auth-tab active">Sign In</button>
+                    <button id="tab-register" class="auth-tab">Create Account</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="login-email"><i data-lucide="mail"></i> Email Address</label>
+                        <input type="email" id="login-email" required placeholder="name@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password"><i data-lucide="lock"></i> Password</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        Sign In <i data-lucide="arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="auth-form hidden">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reg-firstname">First Name</label>
+                            <input type="text" id="reg-firstname" required placeholder="John">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-lastname">Last Name</label>
+                            <input type="text" id="reg-lastname" required placeholder="Doe">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-username"><i data-lucide="user"></i> Username</label>
+                        <input type="text" id="reg-username" required placeholder="johndoe">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email"><i data-lucide="mail"></i> Email Address</label>
+                        <input type="email" id="reg-email" required placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password"><i data-lucide="lock"></i> Password</label>
+                        <input type="password" id="reg-password" required placeholder="Minimum 6 characters">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        Create Account <i data-lucide="user-plus"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- DASHBOARD / AUCTIONS FEED SCREEN -->
+        <section id="dashboard-screen" class="dashboard-screen">
+            <!-- Filter Bar -->
+            <div class="filter-bar glass-card">
+                <div class="search-box">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="search-input" placeholder="Search auctions by title or description...">
+                </div>
+                <div class="filters">
+                    <div class="select-wrapper">
+                        <i data-lucide="filter"></i>
+                        <select id="status-filter">
+                            <option value="">All Statuses</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="NOT STARTED">Not Started</option>
+                            <option value="ENDED">Ended</option>
+                            <option value="CANCELLED">Cancelled</option>
+                        </select>
+                    </div>
+                    <button id="reset-filters-btn" class="btn btn-secondary btn-icon-only" title="Reset Filters">
+                        <i data-lucide="rotate-ccw"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loader -->
+            <div id="auctions-loader" class="loader-container hidden">
+                <div class="spinner"></div>
+                <p>Fetching curated auctions...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state glass-card hidden">
+                <div class="empty-icon">
+                    <i data-lucide="inbox"></i>
+                </div>
+                <h3>No Auctions Found</h3>
+                <p>We couldn't find any auctions matching your criteria. Try adjusting your filters or search keywords.</p>
+                <button id="empty-reset-btn" class="btn btn-primary">View All Auctions</button>
+            </div>
+
+            <!-- Grid Grid -->
+            <div id="auctions-grid" class="auctions-grid">
+                <!-- Auction Cards will be dynamically injected here -->
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination-controls" class="pagination hidden">
+                <button id="prev-page-btn" class="btn btn-secondary"><i data-lucide="chevron-left"></i> Prev</button>
+                <span id="page-indicator">Page 1 of 1</span>
+                <button id="next-page-btn" class="btn btn-secondary">Next <i data-lucide="chevron-right"></i></button>
+            </div>
+        </section>
+    </main>
+
+    <!-- CREATE AUCTION MODAL (Slide in) -->
+    <div id="create-modal" class="modal-overlay hidden">
+        <div class="modal-card glass-card">
+            <div class="modal-header">
+                <h2>Create New Auction</h2>
+                <button id="close-modal-btn" class="btn-close-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="create-auction-form" class="modal-form">
+                <div class="form-group">
+                    <label for="auc-title">Auction Title</label>
+                    <input type="text" id="auc-title" required placeholder="e.g. Rare Signed Canvas Art Piece">
+                </div>
+                <div class="form-group">
+                    <label for="auc-description">Detailed Description</label>
+                    <textarea id="auc-description" required rows="4" placeholder="Describe the item's history, condition, and shipping details..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="auc-bid">Starting Bid ($)</label>
+                    <div class="input-prefix-container">
+                        <span class="input-prefix">$</span>
+                        <input type="number" id="auc-bid" required min="0.01" step="0.01" placeholder="100.00">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="auc-starts-at">Starts At</label>
+                        <input type="datetime-local" id="auc-starts-at" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="auc-ends-at">Ends At</label>
+                        <input type="datetime-local" id="auc-ends-at" required>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancel-create-btn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        Publish Auction <i data-lucide="send"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Application Javascript Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
