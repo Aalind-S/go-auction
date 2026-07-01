@@ -47,7 +47,7 @@ func ListAuctionService(req AuctionListRequest) ([]Auction, error) {
 	// should also validate the inputs honestly, but for now I will just pass it to the repository layer
 	auctions, err := ListAuction(req)
 	if err != nil {
-		return nil, err
+		return []Auction{}, err
 	}
 	return auctions, nil
 }

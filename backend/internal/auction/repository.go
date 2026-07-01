@@ -1,14 +1,21 @@
 package auction
 
-import "github.com/Aalind-S/go-auction/database"
+import (
+	"github.com/Aalind-S/go-auction/database"
+	"gorm.io/gorm"
+)
 
 func CreateAuction(a *Auction) error {
 	return database.DB.Create(a).Error
 }
 
 func ListAuction(auctionListRequest AuctionListRequest) ([]Auction, error) {
-	var auctions []Auction
-	query := database.DB.Model(&Auction{})
+	auctions := []Auction{}
+	query := database.DB.
+		Model(&Auction{}).
+		Preload("Seller", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id", "first_name", "last_name", "email")
+		})
 
 	if auctionListRequest.Status != "" {
 		query = query.Where("status = ?", auctionListRequest.Status)
@@ -33,7 +40,7 @@ func ListAuction(auctionListRequest AuctionListRequest) ([]Auction, error) {
 
 	err := query.Find(&auctions).Error
 	if err != nil {
-		return nil, err
+		return []Auction{}, err
 	}
 	return auctions, nil
 }

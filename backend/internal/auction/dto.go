@@ -42,26 +42,40 @@ type AuctionListRequest struct {
 }
 
 type AuctionResponse struct {
-	ID          uuid.UUID `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	StartingBid float64   `json:"starting_bid"`
-	Status      string    `json:"status"`
-	StartsAt    string    `json:"starts_at"`
-	EndsAt      string    `json:"ends_at"`
+	ID          uuid.UUID                 `json:"id"`
+	Title       string                    `json:"title"`
+	Description string                    `json:"description"`
+	StartingBid float64                   `json:"starting_bid"`
+	Status      string                    `json:"status"`
+	Seller      AuctionListSellerResponse `json:"seller"`
+	StartsAt    string                    `json:"starts_at"`
+	EndsAt      string                    `json:"ends_at"`
+}
+
+type AuctionListSellerResponse struct {
+	ID        uuid.UUID `json:"id"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Email     string    `json:"email"`
 }
 
 func toAuctionResponse(auctions []Auction) []AuctionResponse {
-	var responses []AuctionResponse
+	responses := []AuctionResponse{}
 	for _, auction := range auctions {
 		responses = append(responses, AuctionResponse{
 			ID:          auction.ID,
 			Title:       auction.Title,
 			Description: auction.Description,
 			StartingBid: auction.StartingBid,
-			Status:      string(auction.Status),
-			StartsAt:    auction.StartsAt.String(),
-			EndsAt:      auction.EndsAt.String(),
+			Seller: AuctionListSellerResponse{
+				ID:        auction.Seller.ID,
+				FirstName: auction.Seller.FirstName,
+				LastName:  auction.Seller.LastName,
+				Email:     auction.Seller.Email,
+			},
+			Status:   string(auction.Status),
+			StartsAt: auction.StartsAt.String(),
+			EndsAt:   auction.EndsAt.String(),
 		})
 	}
 	return responses
