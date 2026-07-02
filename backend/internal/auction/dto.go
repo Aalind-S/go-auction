@@ -32,7 +32,7 @@ func toRegisterAuctionResponse(a Auction) RegisterAuctionResponse {
 	}
 }
 
-type AuctionListRequest struct {
+type SearchAuctionRequest struct {
 	Page     int    `form:"page" json:"page"`
 	Limit    int    `form:"limit" json:"limit"`
 	Status   string `form:"status" json:"status"`
@@ -42,17 +42,17 @@ type AuctionListRequest struct {
 }
 
 type AuctionResponse struct {
-	ID          uuid.UUID                 `json:"id"`
-	Title       string                    `json:"title"`
-	Description string                    `json:"description"`
-	StartingBid float64                   `json:"starting_bid"`
-	Status      string                    `json:"status"`
-	Seller      AuctionListSellerResponse `json:"seller"`
-	StartsAt    string                    `json:"starts_at"`
-	EndsAt      string                    `json:"ends_at"`
+	ID          uuid.UUID                   `json:"id"`
+	Title       string                      `json:"title"`
+	Description string                      `json:"description"`
+	StartingBid float64                     `json:"starting_bid"`
+	Status      string                      `json:"status"`
+	Seller      SearchAuctionSellerResponse `json:"seller"`
+	StartsAt    string                      `json:"starts_at"`
+	EndsAt      string                      `json:"ends_at"`
 }
 
-type AuctionListSellerResponse struct {
+type SearchAuctionSellerResponse struct {
 	ID        uuid.UUID `json:"id"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
@@ -67,7 +67,7 @@ func toAuctionResponse(auctions []Auction) []AuctionResponse {
 			Title:       auction.Title,
 			Description: auction.Description,
 			StartingBid: auction.StartingBid,
-			Seller: AuctionListSellerResponse{
+			Seller: SearchAuctionSellerResponse{
 				ID:        auction.Seller.ID,
 				FirstName: auction.Seller.FirstName,
 				LastName:  auction.Seller.LastName,

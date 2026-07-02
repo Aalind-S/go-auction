@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterAuctionRoutes(router *gin.RouterGroup) {
+func RegisterAuctionRoutes(router *gin.RouterGroup, handler *Handler) {
 	auctionGroup := router.Group("/auction")
-	auctionGroup.POST("/create", RegisterAuction)
-	auctionGroup.GET("/", ListAuctions)
+	auctionGroup.POST("/create", handler.RegisterAuction)
+	auctionGroup.GET("/search", handler.SearchAuctions)
 }

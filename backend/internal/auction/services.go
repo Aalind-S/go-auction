@@ -3,7 +3,45 @@ package auction
 import (
 	"fmt"
 	"time"
+
+	uuid "github.com/google/uuid"
 )
+
+type Service interface {
+	RegisterAuction(request RegisterAuctionRequest, sellerID uuid.UUID) (*Auction, error)
+	SearchAuctions(request SearchAuctionRequest) ([]Auction, error)
+}
+
+type AuctionService struct {
+	repository Repository
+}
+
+func NewAuctionService(repository Repository) Service {
+	return &AuctionService{repository: repository}
+}
+
+func (s *AuctionService) RegisterAuction(request RegisterAuctionRequest, sellerID uuid.UUID) (*Auction, error) {
+	startsAt, endsAt, err := ValidateAuction(request)
+	if err != nil {
+		return nil, err
+	}
+
+	auction := &Auction{
+		Title:       request.Title,
+		Description: request.Description,
+		StartingBid: request.StartingBid,
+		StartsAt:    startsAt,
+		EndsAt:      endsAt,
+		SellerID:    sellerID,
+		CurrentBid:  request.StartingBid,
+	}
+
+	if err := s.repository.CreateAuction(auction); err != nil {
+		return nil, err
+	}
+
+	return auction, nil
+}
 
 func ValidateAuction(request RegisterAuctionRequest) (time.Time, time.Time, error) {
 	startsAt, err := time.Parse(time.RFC3339, request.StartsAt)
@@ -34,7 +72,7 @@ func ValidateAuction(request RegisterAuctionRequest) (time.Time, time.Time, erro
 	return startsAt, endsAt, nil
 }
 
-func ListAuctionService(req AuctionListRequest) ([]Auction, error) {
+func (s *AuctionService) SearchAuctions(req SearchAuctionRequest) ([]Auction, error) {
 	// Implement the logic to list auctions based on the request parameters
 	// For example, you can query the database with filters, pagination, etc.
 
@@ -45,7 +83,7 @@ func ListAuctionService(req AuctionListRequest) ([]Auction, error) {
 		req.Limit = 10
 	}
 	// should also validate the inputs honestly, but for now I will just pass it to the repository layer
-	auctions, err := ListAuction(req)
+	auctions, err := s.repository.SearchAuctions(req)
 	if err != nil {
 		return []Auction{}, err
 	}

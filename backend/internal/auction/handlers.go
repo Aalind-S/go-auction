@@ -7,20 +7,21 @@ import (
 	uuid "github.com/google/uuid"
 )
 
-func RegisterAuction(c *gin.Context) {
+type Handler struct {
+	service Service
+}
+
+func NewHandler(service Service) *Handler {
+	return &Handler{service: service}
+}
+
+func (h *Handler) RegisterAuction(c *gin.Context) {
 	var req RegisterAuctionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	startsAt, endsAt, err := ValidateAuction(req)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Proceed with creating the auction
 	userIDValue, exists := c.Get("userID")
 	if !exists {
 		c.JSON(401, gin.H{"error": "unauthorized"})
@@ -33,35 +34,25 @@ func RegisterAuction(c *gin.Context) {
 		return
 	}
 
-	newAuction := Auction{
-		Title:       req.Title,
-		Description: req.Description,
-		StartingBid: req.StartingBid,
-		StartsAt:    startsAt,
-		EndsAt:      endsAt,
-		SellerID:    userID,
-		CurrentBid:  req.StartingBid,
-	}
-
-	err = CreateAuction(&newAuction)
+	newAuction, err := h.service.RegisterAuction(req, userID)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to create auction"})
 		return
 	}
-	c.JSON(http.StatusCreated, toRegisterAuctionResponse(newAuction))
+	c.JSON(http.StatusCreated, toRegisterAuctionResponse(*newAuction))
 
 }
 
-func ListAuctions(c *gin.Context) {
-	var req AuctionListRequest
+func (h *Handler) SearchAuctions(c *gin.Context) {
+	var req SearchAuctionRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	auctions, err := ListAuctionService(req)
+	auctions, err := h.service.SearchAuctions(req)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "failed to list auctions"})
+		c.JSON(500, gin.H{"error": "failed to search auctions"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{

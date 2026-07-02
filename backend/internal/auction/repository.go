@@ -1,40 +1,52 @@
 package auction
 
 import (
-	"github.com/Aalind-S/go-auction/database"
 	"gorm.io/gorm"
 )
 
-func CreateAuction(a *Auction) error {
-	return database.DB.Create(a).Error
+type Repository interface {
+	CreateAuction(auction *Auction) error
+	SearchAuctions(request SearchAuctionRequest) ([]Auction, error)
 }
 
-func ListAuction(auctionListRequest AuctionListRequest) ([]Auction, error) {
+type GormRepository struct {
+	db *gorm.DB
+}
+
+func NewGormRepository(db *gorm.DB) Repository {
+	return &GormRepository{db: db}
+}
+
+func (r *GormRepository) CreateAuction(auction *Auction) error {
+	return r.db.Create(auction).Error
+}
+
+func (r *GormRepository) SearchAuctions(searchAuctionRequest SearchAuctionRequest) ([]Auction, error) {
 	auctions := []Auction{}
-	query := database.DB.
+	query := r.db.
 		Model(&Auction{}).
 		Preload("Seller", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id", "first_name", "last_name", "email")
 		})
 
-	if auctionListRequest.Status != "" {
-		query = query.Where("status = ?", auctionListRequest.Status)
+	if searchAuctionRequest.Status != "" {
+		query = query.Where("status = ?", searchAuctionRequest.Status)
 	}
 
-	if auctionListRequest.DateFrom != "" {
-		query = query.Where("starts_at >= ?", auctionListRequest.DateFrom)
+	if searchAuctionRequest.DateFrom != "" {
+		query = query.Where("starts_at >= ?", searchAuctionRequest.DateFrom)
 	}
 
-	if auctionListRequest.Page > 0 && auctionListRequest.Limit > 0 {
+	if searchAuctionRequest.Page > 0 && searchAuctionRequest.Limit > 0 {
 		// I know its not scalable for millions of auctions but works for now, we can implement cursor based pagination later
-		offset := (auctionListRequest.Page - 1) * auctionListRequest.Limit
-		query = query.Offset(offset).Limit(auctionListRequest.Limit)
+		offset := (searchAuctionRequest.Page - 1) * searchAuctionRequest.Limit
+		query = query.Offset(offset).Limit(searchAuctionRequest.Limit)
 	} else {
 		query = query.Limit(10)
 	}
 
-	if auctionListRequest.Search != "" {
-		searchTerm := "%" + auctionListRequest.Search + "%"
+	if searchAuctionRequest.Search != "" {
+		searchTerm := "%" + searchAuctionRequest.Search + "%"
 		query = query.Where("title LIKE ? OR description LIKE ?", searchTerm, searchTerm)
 	}
 
