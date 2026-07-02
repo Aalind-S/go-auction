@@ -3,10 +3,12 @@
    Features: Auth, SPA Navigation, Auction Board, Form Submissions, Live Updates
    ========================================================================== */
 
-// Configure base API endpoint (adapts to production vs development)
-const API_BASE = window.location.origin.includes('localhost') 
-    ? 'http://localhost:8000/api' 
-    : '/api';
+// Configure base API endpoint (handles localhost port variations, file protocol, and relative routing)
+const API_BASE = (window.location.origin.includes('localhost') && !window.location.origin.includes(':8000'))
+    ? 'http://localhost:8000/api'
+    : window.location.origin.startsWith('file://')
+        ? 'http://localhost:8000/api'
+        : '/api';
 
 // Global Client State
 const state = {

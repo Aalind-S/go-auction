@@ -40,5 +40,10 @@ func main() {
 	auth.RegisterProtectedRoutes(protected)
 	auction.RegisterAuctionRoutes(protected)
 
+	// Serve static frontend files
+	router.StaticFile("/", "../frontend/index.html")
+	router.StaticFile("/style.css", "../frontend/style.css")
+	router.StaticFile("/app.js", "../frontend/app.js")
+
 	router.Run(":" + config.AppConfig.APP_PORT)
 }
