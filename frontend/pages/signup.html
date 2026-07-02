@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BidSphere | Join Now</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Custom styling centering card -->
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .signup-container {
+            width: 100%;
+            max-width: 460px;
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .signup-card {
+            padding: 40px;
+        }
+        .signup-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .signup-header .logo {
+            margin: 0 auto 16px auto;
+            width: 48px;
+            height: 48px;
+        }
+        .signup-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        .signup-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+        .card-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .card-footer a {
+            font-weight: 600;
+        }
+        .back-home {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Back to Home -->
+    <a href="/" class="btn btn-secondary back-home">
+        <i data-lucide="arrow-left"></i> Home
+    </a>
+
+    <div class="signup-container">
+        <div class="glass-card signup-card">
+            <div class="signup-header">
+                <div class="logo-icon logo">
+                    <i data-lucide="gavel"></i>
+                </div>
+                <h2>Create Account</h2>
+                <p>Join the premium bidding board</p>
+            </div>
+
+            <form id="register-form" class="auth-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reg-firstname">First Name</label>
+                        <input type="text" id="reg-firstname" required placeholder="John" autofocus>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-lastname">Last Name</label>
+                        <input type="text" id="reg-lastname" required placeholder="Doe">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-username"><i data-lucide="user"></i> Username</label>
+                    <input type="text" id="reg-username" required placeholder="johndoe">
+                </div>
+                <div class="form-group">
+                    <label for="reg-email"><i data-lucide="mail"></i> Email Address</label>
+                    <input type="email" id="reg-email" required placeholder="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password"><i data-lucide="lock"></i> Password</label>
+                    <input type="password" id="reg-password" required placeholder="Minimum 6 characters">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    Create Account <i data-lucide="user-plus"></i>
+                </button>
+            </form>
+
+            <div class="card-footer">
+                Already have an account? <a href="/login">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="../js/signup.js"></script>
+</body>
+</html>

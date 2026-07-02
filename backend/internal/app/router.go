@@ -47,7 +47,10 @@ func registerAuctionRoutes(api *gin.RouterGroup, db *gorm.DB) {
 }
 
 func registerFrontendRoutes(router *gin.Engine) {
-	router.StaticFile("/", "../frontend/index.html")
-	router.StaticFile("/style.css", "../frontend/style.css")
-	router.StaticFile("/app.js", "../frontend/app.js")
+	router.StaticFile("/", "../frontend/pages/index.html")
+	router.StaticFile("/login", "../frontend/pages/login.html")
+	router.StaticFile("/signup", "../frontend/pages/signup.html")
+
+	router.Static("/css", "../frontend/css")
+	router.Static("/js", "../frontend/js")
 }

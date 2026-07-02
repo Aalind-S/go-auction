@@ -169,7 +169,6 @@ function logout() {
 // ==========================================================================
 function switchView(viewName) {
     const heroSection = document.getElementById('hero-banner');
-    const authSection = document.getElementById('auth-screen');
     const dashboardSection = document.getElementById('dashboard-screen');
     
     const dashboardNav = document.getElementById('nav-dashboard-btn');
@@ -179,14 +178,11 @@ function switchView(viewName) {
 
     // Hide all
     heroSection.classList.add('hidden');
-    authSection.classList.add('hidden');
     dashboardSection.classList.add('hidden');
 
     if (viewName === 'hero') {
         heroSection.classList.remove('hidden');
         dashboardSection.classList.remove('hidden'); // Show feed under hero for public explore
-    } else if (viewName === 'auth') {
-        authSection.classList.remove('hidden');
     } else if (viewName === 'dashboard') {
         dashboardSection.classList.remove('hidden');
         dashboardNav.classList.add('active');
@@ -298,8 +294,10 @@ function renderAuctionCards(auctions, container) {
         btn.addEventListener('click', (e) => {
             const id = e.currentTarget.getAttribute('data-id');
             if (!state.user) {
-                showToast('You must sign in to place bids.', 'info');
-                switchView('auth');
+                showToast('You must sign in to place bids. Redirecting...', 'info');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 800);
             } else {
                 showToast('Bidding is coming soon in a future update!', 'info');
             }
@@ -391,75 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('dashboard-screen').scrollIntoView({ behavior: 'smooth' });
     });
 
-    // 3. Auth Switcher
-    const loginTab = document.getElementById('tab-login');
-    const registerTab = document.getElementById('tab-register');
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
 
-    const triggerAuthView = (tab) => {
-        switchView('auth');
-        if (tab === 'login') {
-            loginTab.classList.add('active');
-            registerTab.classList.remove('active');
-            loginForm.classList.remove('hidden');
-            registerForm.classList.add('hidden');
-        } else {
-            loginTab.classList.remove('active');
-            registerTab.classList.add('active');
-            loginForm.classList.add('hidden');
-            registerForm.classList.remove('hidden');
-        }
-    };
-
-    document.getElementById('header-login-btn').addEventListener('click', () => triggerAuthView('login'));
-    document.getElementById('header-register-btn').addEventListener('click', () => triggerAuthView('register'));
-    loginTab.addEventListener('click', () => triggerAuthView('login'));
-    registerTab.addEventListener('click', () => triggerAuthView('register'));
-
-    // 4. Auth Submissions
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-
-        try {
-            const data = await apiFetch('/auth/login', {
-                method: 'POST',
-                body: JSON.stringify({ email, password })
-            });
-
-            if (data && data.token) {
-                login(data.token, data.user);
-                loginForm.reset();
-            }
-        } catch (err) {
-            showToast(err.message || 'Login failed', 'error');
-        }
-    });
-
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const first_name = document.getElementById('reg-firstname').value;
-        const last_name = document.getElementById('reg-lastname').value;
-        const username = document.getElementById('reg-username').value;
-        const email = document.getElementById('reg-email').value;
-        const password = document.getElementById('reg-password').value;
-
-        try {
-            const data = await apiFetch('/auth/register', {
-                method: 'POST',
-                body: JSON.stringify({ first_name, last_name, username, email, password })
-            });
-
-            if (data && data.token) {
-                login(data.token, data.user);
-                registerForm.reset();
-            }
-        } catch (err) {
-            showToast(err.message || 'Registration failed', 'error');
-        }
-    });
 
     document.getElementById('logout-btn').addEventListener('click', logout);
 
