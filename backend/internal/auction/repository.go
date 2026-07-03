@@ -1,12 +1,14 @@
 package auction
 
 import (
+	uuid "github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
 	CreateAuction(auction *Auction) error
 	SearchAuctions(request SearchAuctionRequest) ([]Auction, error)
+	GetAuctionByID(auctionId uuid.UUID) (*Auction, error)
 }
 
 type GormRepository struct {
@@ -55,4 +57,18 @@ func (r *GormRepository) SearchAuctions(searchAuctionRequest SearchAuctionReques
 		return []Auction{}, err
 	}
 	return auctions, nil
+}
+
+func (r *GormRepository) GetAuctionByID(auctionId uuid.UUID) (*Auction, error) {
+	auction := &Auction{}
+	err := r.db.
+		Preload("Seller", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id", "first_name", "last_name", "email")
+		}).
+		First(auction, "id = ?", auctionId).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return auction, nil
 }

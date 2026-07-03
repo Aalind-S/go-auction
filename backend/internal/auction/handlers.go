@@ -59,3 +59,18 @@ func (h *Handler) SearchAuctions(c *gin.Context) {
 		"auctions": toAuctionResponse(auctions),
 	})
 }
+
+func (h *Handler) GetAuctionByID(c *gin.Context) {
+	auctionID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid auction ID"})
+		return
+	}
+
+	auction, err := h.service.GetAuctionByID(auctionID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to get auction"})
+		return
+	}
+	c.JSON(http.StatusOK, toRegisterAuctionResponse(*auction))
+}

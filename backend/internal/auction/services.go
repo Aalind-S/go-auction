@@ -10,6 +10,7 @@ import (
 type Service interface {
 	RegisterAuction(request RegisterAuctionRequest, sellerID uuid.UUID) (*Auction, error)
 	SearchAuctions(request SearchAuctionRequest) ([]Auction, error)
+	GetAuctionByID(auctionID uuid.UUID) (*Auction, error)
 }
 
 type AuctionService struct {
@@ -88,4 +89,8 @@ func (s *AuctionService) SearchAuctions(req SearchAuctionRequest) ([]Auction, er
 		return []Auction{}, err
 	}
 	return auctions, nil
+}
+
+func (s *AuctionService) GetAuctionByID(auctionId uuid.UUID) (*Auction, error) {
+	return s.repository.GetAuctionByID(auctionId)
 }
