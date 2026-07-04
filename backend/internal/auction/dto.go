@@ -1,6 +1,8 @@
 package auction
 
 import (
+	"time"
+
 	uuid "github.com/google/uuid"
 )
 
@@ -79,4 +81,20 @@ func toAuctionResponse(auctions []Auction) []AuctionResponse {
 		})
 	}
 	return responses
+}
+
+type AuctionUpdateRequest struct {
+	Title       *string  `json:"title"`
+	Description *string  `json:"description"`
+	StartingBid *float64 `json:"starting_bid"`
+	StartsAt    *string  `json:"starts_at"`
+	EndsAt      *string  `json:"ends_at"`
+}
+
+type AuctionUpdateData struct {
+	Title       *string
+	Description *string
+	StartingBid *float64
+	StartsAt    *time.Time
+	EndsAt      *time.Time
 }

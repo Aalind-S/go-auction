@@ -9,6 +9,7 @@ type Repository interface {
 	CreateAuction(auction *Auction) error
 	SearchAuctions(request SearchAuctionRequest) ([]Auction, error)
 	GetAuctionByID(auctionId uuid.UUID) (*Auction, error)
+	UpdateAuction(auctionID uuid.UUID, request AuctionUpdateData) (*Auction, error)
 }
 
 type GormRepository struct {
@@ -70,5 +71,36 @@ func (r *GormRepository) GetAuctionByID(auctionId uuid.UUID) (*Auction, error) {
 	if err != nil {
 		return nil, err
 	}
+	return auction, nil
+}
+
+func (r *GormRepository) UpdateAuction(auctionID uuid.UUID, request AuctionUpdateData) (*Auction, error) {
+	auction := &Auction{}
+	err := r.db.First(auction, "id = ?", auctionID).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if request.Title != nil {
+		auction.Title = *request.Title
+	}
+	if request.Description != nil {
+		auction.Description = *request.Description
+	}
+	if request.StartingBid != nil {
+		auction.StartingBid = *request.StartingBid
+	}
+	if request.StartsAt != nil {
+		auction.StartsAt = *request.StartsAt
+	}
+	if request.EndsAt != nil {
+		auction.EndsAt = *request.EndsAt
+	}
+
+	err = r.db.Save(auction).Error
+	if err != nil {
+		return nil, err
+	}
+
 	return auction, nil
 }

@@ -11,6 +11,7 @@ type Service interface {
 	RegisterAuction(request RegisterAuctionRequest, sellerID uuid.UUID) (*Auction, error)
 	SearchAuctions(request SearchAuctionRequest) ([]Auction, error)
 	GetAuctionByID(auctionID uuid.UUID) (*Auction, error)
+	UpdateAuction(auctionID uuid.UUID, request AuctionUpdateRequest) (*Auction, error)
 }
 
 type AuctionService struct {
@@ -45,14 +46,14 @@ func (s *AuctionService) RegisterAuction(request RegisterAuctionRequest, sellerI
 }
 
 func ValidateAuction(request RegisterAuctionRequest) (time.Time, time.Time, error) {
-	startsAt, err := time.Parse(time.RFC3339, request.StartsAt)
+	startsAt, err := parseAuctionTime(request.StartsAt, "starts_at")
 	if err != nil {
-		return time.Time{}, time.Time{}, fmt.Errorf("invalid starts_at format")
+		return time.Time{}, time.Time{}, err
 	}
 
-	endsAt, err := time.Parse(time.RFC3339, request.EndsAt)
+	endsAt, err := parseAuctionTime(request.EndsAt, "ends_at")
 	if err != nil {
-		return time.Time{}, time.Time{}, fmt.Errorf("invalid ends_at format")
+		return time.Time{}, time.Time{}, err
 	}
 
 	if startsAt.After(endsAt) {
@@ -71,6 +72,52 @@ func ValidateAuction(request RegisterAuctionRequest) (time.Time, time.Time, erro
 		return time.Time{}, time.Time{}, fmt.Errorf("starting_bid must be greater than 0")
 	}
 	return startsAt, endsAt, nil
+}
+
+func ValidateAuctionUpdate(request AuctionUpdateRequest) (*time.Time, *time.Time, error) {
+	var startsAt *time.Time
+	var endsAt *time.Time
+
+	if request.StartsAt != nil {
+		parsedStartsAt, err := parseAuctionTime(*request.StartsAt, "starts_at")
+		if err != nil {
+			return nil, nil, err
+		}
+		if parsedStartsAt.Before(time.Now()) {
+			return nil, nil, fmt.Errorf("starts_at cannot be in the past")
+		}
+		startsAt = &parsedStartsAt
+	}
+
+	if request.EndsAt != nil {
+		parsedEndsAt, err := parseAuctionTime(*request.EndsAt, "ends_at")
+		if err != nil {
+			return nil, nil, err
+		}
+		if parsedEndsAt.Before(time.Now()) {
+			return nil, nil, fmt.Errorf("ends_at cannot be in the past")
+		}
+		endsAt = &parsedEndsAt
+	}
+
+	if startsAt != nil && endsAt != nil && startsAt.After(*endsAt) {
+		return nil, nil, fmt.Errorf("starts_at cannot be after ends_at")
+	}
+
+	if request.StartingBid != nil && *request.StartingBid <= 0 {
+		return nil, nil, fmt.Errorf("starting_bid must be greater than 0")
+	}
+
+	return startsAt, endsAt, nil
+}
+
+func parseAuctionTime(value string, fieldName string) (time.Time, error) {
+	parsedTime, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid %s format", fieldName)
+	}
+
+	return parsedTime, nil
 }
 
 func (s *AuctionService) SearchAuctions(req SearchAuctionRequest) ([]Auction, error) {
@@ -93,4 +140,28 @@ func (s *AuctionService) SearchAuctions(req SearchAuctionRequest) ([]Auction, er
 
 func (s *AuctionService) GetAuctionByID(auctionId uuid.UUID) (*Auction, error) {
 	return s.repository.GetAuctionByID(auctionId)
+}
+
+func (s *AuctionService) UpdateAuction(auctionID uuid.UUID, request AuctionUpdateRequest) (*Auction, error) {
+	// Validate the request fields if they are provided
+	startsAt, endsAt, err := ValidateAuctionUpdate(request)
+	if err != nil {
+		return nil, err
+	}
+
+	updateData := AuctionUpdateData{
+		Title:       request.Title,
+		Description: request.Description,
+		StartingBid: request.StartingBid,
+		StartsAt:    startsAt,
+		EndsAt:      endsAt,
+	}
+
+	// Update the auction in the repository
+	updatedAuction, err := s.repository.UpdateAuction(auctionID, updateData)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedAuction, nil
 }
