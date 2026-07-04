@@ -11,7 +11,7 @@ type Service interface {
 	RegisterAuction(request RegisterAuctionRequest, sellerID uuid.UUID) (*Auction, error)
 	SearchAuctions(request SearchAuctionRequest) ([]Auction, error)
 	GetAuctionByID(auctionID uuid.UUID) (*Auction, error)
-	UpdateAuction(auctionID uuid.UUID, request AuctionUpdateRequest) (*Auction, error)
+	UpdateAuction(auctionID uuid.UUID, request AuctionUpdateRequest, userID uuid.UUID) (*Auction, error)
 }
 
 type AuctionService struct {
@@ -142,7 +142,7 @@ func (s *AuctionService) GetAuctionByID(auctionId uuid.UUID) (*Auction, error) {
 	return s.repository.GetAuctionByID(auctionId)
 }
 
-func (s *AuctionService) UpdateAuction(auctionID uuid.UUID, request AuctionUpdateRequest) (*Auction, error) {
+func (s *AuctionService) UpdateAuction(auctionID uuid.UUID, request AuctionUpdateRequest, userID uuid.UUID) (*Auction, error) {
 	// Validate the request fields if they are provided
 	startsAt, endsAt, err := ValidateAuctionUpdate(request)
 	if err != nil {
@@ -158,7 +158,7 @@ func (s *AuctionService) UpdateAuction(auctionID uuid.UUID, request AuctionUpdat
 	}
 
 	// Update the auction in the repository
-	updatedAuction, err := s.repository.UpdateAuction(auctionID, updateData)
+	updatedAuction, err := s.repository.UpdateAuction(auctionID, updateData, userID)
 	if err != nil {
 		return nil, err
 	}

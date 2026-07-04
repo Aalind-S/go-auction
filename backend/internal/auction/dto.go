@@ -95,6 +95,7 @@ type AuctionUpdateData struct {
 	Title       *string
 	Description *string
 	StartingBid *float64
+	SellerID    uuid.UUID
 	StartsAt    *time.Time
 	EndsAt      *time.Time
 }
