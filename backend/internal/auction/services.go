@@ -12,6 +12,7 @@ type Service interface {
 	SearchAuctions(request SearchAuctionRequest) ([]Auction, error)
 	GetAuctionByID(auctionID uuid.UUID) (*Auction, error)
 	UpdateAuction(auctionID uuid.UUID, request AuctionUpdateRequest, userID uuid.UUID) (*Auction, error)
+	DeleteAuction(auctionID uuid.UUID, userID uuid.UUID) error
 }
 
 type AuctionService struct {
@@ -164,4 +165,14 @@ func (s *AuctionService) UpdateAuction(auctionID uuid.UUID, request AuctionUpdat
 	}
 
 	return updatedAuction, nil
+}
+
+func (s *AuctionService) DeleteAuction(auctionID uuid.UUID, userID uuid.UUID) error {
+	// Call the repository method to delete the auction
+	err := s.repository.DeleteAuction(auctionID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

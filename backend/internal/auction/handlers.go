@@ -107,3 +107,30 @@ func (h *Handler) UpdateAuction(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, toRegisterAuctionResponse(*updatedAuction))
 }
+
+func (h *Handler) DeleteAuction(c *gin.Context) {
+	auctionID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid auction ID"})
+		return
+	}
+
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userID, ok := userIDValue.(uuid.UUID)
+	if !ok {
+		c.JSON(500, gin.H{"error": "invalid user context"})
+		return
+	}
+
+	err = h.service.DeleteAuction(auctionID, userID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to delete auction"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "auction deleted successfully"})
+}

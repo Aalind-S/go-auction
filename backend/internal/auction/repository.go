@@ -10,6 +10,7 @@ type Repository interface {
 	SearchAuctions(request SearchAuctionRequest) ([]Auction, error)
 	GetAuctionByID(auctionId uuid.UUID) (*Auction, error)
 	UpdateAuction(auctionID uuid.UUID, request AuctionUpdateData, userID uuid.UUID) (*Auction, error)
+	DeleteAuction(auctionID uuid.UUID, userID uuid.UUID) error
 }
 
 type GormRepository struct {
@@ -53,6 +54,7 @@ func (r *GormRepository) SearchAuctions(searchAuctionRequest SearchAuctionReques
 		query = query.Where("title LIKE ? OR description LIKE ?", searchTerm, searchTerm)
 	}
 
+	query = query.Where("deleted_at IS NULL")
 	err := query.Find(&auctions).Error
 	if err != nil {
 		return []Auction{}, err
@@ -66,7 +68,7 @@ func (r *GormRepository) GetAuctionByID(auctionId uuid.UUID) (*Auction, error) {
 		Preload("Seller", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id", "first_name", "last_name", "email")
 		}).
-		First(auction, "id = ?", auctionId).Error
+		First(auction, "id = ? AND deleted_at IS NULL", auctionId).Error
 
 	if err != nil {
 		return nil, err
@@ -76,7 +78,7 @@ func (r *GormRepository) GetAuctionByID(auctionId uuid.UUID) (*Auction, error) {
 
 func (r *GormRepository) UpdateAuction(auctionID uuid.UUID, request AuctionUpdateData, userID uuid.UUID) (*Auction, error) {
 	auction := &Auction{}
-	err := r.db.First(auction, "id = ? AND seller_id = ?", auctionID, userID).Error
+	err := r.db.First(auction, "id = ? AND seller_id = ? AND deleted_at IS NULL", auctionID, userID).Error
 	if err != nil {
 		return nil, err
 	}
@@ -103,4 +105,19 @@ func (r *GormRepository) UpdateAuction(auctionID uuid.UUID, request AuctionUpdat
 	}
 
 	return auction, nil
+}
+
+func (r *GormRepository) DeleteAuction(auctionID uuid.UUID, userID uuid.UUID) error {
+	auction := &Auction{}
+	err := r.db.First(auction, "id = ? AND seller_id = ? AND deleted_at IS NULL", auctionID, userID).Error
+	if err != nil {
+		return err
+	}
+
+	err = r.db.Delete(auction).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
