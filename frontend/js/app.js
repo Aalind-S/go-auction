@@ -15,6 +15,8 @@ const state = {
     token: localStorage.getItem('auth_token') || null,
     user: null,
     auctions: [],
+    activeAuction: null,
+    joinedAuctions: JSON.parse(localStorage.getItem('joined_auctions') || '[]'),
     filters: {
         search: '',
         status: '',
@@ -214,7 +216,7 @@ async function fetchAuctions() {
         queryParams.append('limit', state.filters.limit);
 
         // Fetch
-        const data = await apiFetch(`/auction/?${queryParams.toString()}`);
+        const data = await apiFetch(`/auction/search?${queryParams.toString()}`);
         const auctions = data.auctions || [];
         state.auctions = auctions;
 
@@ -281,26 +283,18 @@ function renderAuctionCards(auctions, container) {
                 </div>
 
                 <button class="btn btn-primary btn-block bid-action-btn" 
-                        data-id="${auc.id}" 
-                        ${auc.status !== 'ACTIVE' || isSeller ? 'disabled' : ''}>
-                    ${isSeller ? 'Your Listing' : auc.status === 'ACTIVE' ? 'Place Bid' : 'Not Active'}
+                        data-id="${auc.id}">
+                    ${isSeller ? 'Your Listing' : auc.status === 'ACTIVE' ? 'Place Bid' : 'View Details'}
                 </button>
             </div>
         `;
     }).join('');
     
-    // Add Click listeners for place bid
+    // Add Click listeners for opening details/bid modal
     document.querySelectorAll('.bid-action-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = e.currentTarget.getAttribute('data-id');
-            if (!state.user) {
-                showToast('You must sign in to place bids. Redirecting...', 'info');
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 800);
-            } else {
-                showToast('Bidding is coming soon in a future update!', 'info');
-            }
+            openBidModal(id);
         });
     });
 
@@ -361,6 +355,175 @@ function formatRFC3339(dateValue) {
     const seconds = pad(d.getUTCSeconds());
     
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}Z`;
+}
+
+// ==========================================================================
+// Bidding Modal & Actions Logic
+// ==========================================================================
+async function openBidModal(auctionId) {
+    const modal = document.getElementById('bid-modal');
+    if (!modal) return;
+
+    // Show modal and start loading UI
+    modal.classList.remove('hidden');
+    
+    // Clear list, hide warn, show loading
+    document.getElementById('bid-history-list').innerHTML = '';
+    document.getElementById('bid-history-loader').classList.remove('hidden');
+    document.getElementById('place-bid-container').classList.add('hidden');
+    document.getElementById('join-auction-container').classList.add('hidden');
+    document.getElementById('bid-validation-warning').classList.add('hidden');
+
+    try {
+        // Fetch fresh details of this auction
+        const auc = await apiFetch(`/auction/${auctionId}`);
+        state.activeAuction = auc;
+
+        // Populate elements
+        document.getElementById('bid-modal-title').textContent = auc.title;
+        document.getElementById('bid-modal-desc').textContent = auc.description;
+        document.getElementById('bid-modal-starting-price').textContent = `$${auc.starting_bid.toFixed(2)}`;
+        
+        const currentPriceEl = document.getElementById('bid-modal-current-price');
+        currentPriceEl.textContent = `$${auc.starting_bid.toFixed(2)}`; // default is starting bid
+        
+        // Update status badge style
+        const statusEl = document.getElementById('bid-modal-status');
+        statusEl.textContent = auc.status;
+        statusEl.className = 'badge';
+        if (auc.status === 'ACTIVE') statusEl.classList.add('active-badge');
+        else if (auc.status === 'ENDED') statusEl.classList.add('ended-badge');
+        else if (auc.status === 'NOT STARTED') statusEl.classList.add('upcoming-badge');
+        else if (auc.status === 'CANCELLED') statusEl.classList.add('cancelled-badge');
+
+        const isSeller = state.user && state.user.id === auc.seller.id;
+        const sellerName = isSeller ? 'You' : `${auc.seller.first_name} ${auc.seller.last_name}`;
+        document.getElementById('bid-modal-seller').textContent = sellerName;
+
+        // Timer setup
+        if (window.activeTimerInterval) clearInterval(window.activeTimerInterval);
+        const timerEl = document.getElementById('bid-modal-timer');
+        const updateTimer = () => {
+            const relative = getRelativeTimeStatus(auc.starts_at, auc.ends_at, auc.status);
+            timerEl.innerHTML = `<i data-lucide="clock"></i> ${relative.text}`;
+            lucide.createIcons();
+        };
+        updateTimer();
+        window.activeTimerInterval = setInterval(updateTimer, 1000);
+
+        // Manage action section based on status & auth
+        const actionsSection = document.getElementById('bidding-actions-section');
+        actionsSection.classList.remove('hidden');
+
+        if (!state.user) {
+            // Not logged in
+            document.getElementById('join-auction-container').classList.remove('hidden');
+            document.getElementById('join-auction-btn').innerHTML = '<i data-lucide="log-in"></i> Sign In to Bid';
+            document.querySelector('#join-auction-container .cta-message').textContent = 'Please sign in to participate and place bids.';
+        } else if (isSeller) {
+            // User is the seller
+            actionsSection.classList.add('hidden'); // hide bidding forms for the seller
+        } else if (auc.status !== 'ACTIVE') {
+            // Auction not active
+            actionsSection.classList.add('hidden');
+        } else {
+            // User is logged in, not the seller, and auction is active. Check participation
+            const hasJoined = state.joinedAuctions.includes(auctionId);
+            if (hasJoined) {
+                showPlaceBidForm(auc);
+            } else {
+                showJoinForm();
+            }
+        }
+
+        // Fetch Bids History
+        await fetchBidHistory(auctionId);
+
+    } catch (err) {
+        showToast('Failed to load auction details.', 'error');
+        modal.classList.add('hidden');
+    } finally {
+        lucide.createIcons();
+    }
+}
+
+function showPlaceBidForm(auc) {
+    document.getElementById('join-auction-container').classList.add('hidden');
+    document.getElementById('place-bid-container').classList.remove('hidden');
+    
+    // Suggest a bid that is 10 above starting/current bid
+    const currentPrice = state.activeAuction.current_bid || parseFloat(auc.starting_bid);
+    const input = document.getElementById('bid-amount-input');
+    input.value = (currentPrice + 10.00).toFixed(2);
+    input.min = (currentPrice + 0.01).toFixed(2);
+}
+
+function showJoinForm() {
+    document.getElementById('join-auction-container').classList.remove('hidden');
+    document.getElementById('place-bid-container').classList.add('hidden');
+    document.getElementById('join-auction-btn').innerHTML = '<i data-lucide="user-plus"></i> Join Auction';
+    document.querySelector('#join-auction-container .cta-message').textContent = 'You need to register as a participant to bid on this auction.';
+}
+
+async function fetchBidHistory(auctionId) {
+    const listContainer = document.getElementById('bid-history-list');
+    const loader = document.getElementById('bid-history-loader');
+    
+    loader.classList.remove('hidden');
+    listContainer.innerHTML = '';
+
+    try {
+        // Fetch bids
+        const bids = await apiFetch(`/auction/${auctionId}/bids`);
+        
+        if (bids && bids.length > 0) {
+            // Update current bid price in state and UI
+            const highestBid = bids[0].amount;
+            state.activeAuction.current_bid = highestBid;
+            
+            const curPriceEl = document.getElementById('bid-modal-current-price');
+            const oldPrice = parseFloat(curPriceEl.textContent.replace('$', ''));
+            
+            curPriceEl.textContent = `$${highestBid.toFixed(2)}`;
+            
+            // Add pulse effect if updated
+            if (highestBid > oldPrice) {
+                curPriceEl.classList.remove('price-pulse');
+                void curPriceEl.offsetWidth; // trigger reflow
+                curPriceEl.classList.add('price-pulse');
+            }
+
+            // Update bid input default/min values
+            const input = document.getElementById('bid-amount-input');
+            if (input) {
+                input.value = (highestBid + 10.00).toFixed(2);
+                input.min = (highestBid + 0.01).toFixed(2);
+            }
+
+            // Render history items
+            listContainer.innerHTML = bids.map(bid => {
+                const formattedTime = new Date(bid.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + 
+                                     ' ' + new Date(bid.created_at).toLocaleDateString();
+                return `
+                    <div class="bid-history-item">
+                        <div class="bidder-details">
+                            <span class="bidder-name">@${escapeHtml(bid.bidder_username)}</span>
+                            <span class="bid-time">${formattedTime}</span>
+                        </div>
+                        <span class="bid-amt">$${bid.amount.toFixed(2)}</span>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            listContainer.innerHTML = `<p class="cta-message" style="margin-top: 20px;">No bids placed yet. Be the first to bid!</p>`;
+        }
+    } catch (err) {
+        // Fail-safe: if history endpoint does not exist yet, mock or empty
+        console.warn("Bids history fetch failed, using fallback empty state", err);
+        listContainer.innerHTML = `<p class="cta-message" style="margin-top: 20px;">No bids placed yet. Be the first to bid!</p>`;
+    } finally {
+        loader.classList.add('hidden');
+    }
 }
 
 // ==========================================================================
@@ -523,6 +686,149 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchAuctions();
         } catch (err) {
             showToast(err.message || 'Failed to publish auction', 'error');
+        }
+    });
+
+    // 7. Bidding Modal Event Listeners
+    const bidModal = document.getElementById('bid-modal');
+    const closeBidModalBtn = document.getElementById('close-bid-modal-btn');
+    const joinBtn = document.getElementById('join-auction-btn');
+    const placeBidForm = document.getElementById('place-bid-form');
+    const bidInput = document.getElementById('bid-amount-input');
+    const submitBidBtn = document.getElementById('submit-bid-btn');
+    const validationWarning = document.getElementById('bid-validation-warning');
+
+    const closeBidModal = () => {
+        bidModal.classList.add('hidden');
+        if (window.activeTimerInterval) clearInterval(window.activeTimerInterval);
+        state.activeAuction = null;
+    };
+
+    closeBidModalBtn.addEventListener('click', closeBidModal);
+    
+    // Close modal when clicking outside the card
+    bidModal.addEventListener('click', (e) => {
+        if (e.target === bidModal) {
+            closeBidModal();
+        }
+    });
+
+    // Join Auction Action
+    joinBtn.addEventListener('click', async () => {
+        if (!state.user) {
+            // Redirect to login if anonymous
+            showToast('Redirecting to sign in page...', 'info');
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 800);
+            return;
+        }
+
+        const auctionId = state.activeAuction.id;
+        try {
+            joinBtn.disabled = true;
+            joinBtn.textContent = 'Joining...';
+            
+            await apiFetch(`/auction/${auctionId}/join`, {
+                method: 'POST'
+            });
+
+            showToast('Successfully registered as a participant!', 'success');
+            
+            // Add to joined list
+            if (!state.joinedAuctions.includes(auctionId)) {
+                state.joinedAuctions.push(auctionId);
+                localStorage.setItem('joined_auctions', JSON.stringify(state.joinedAuctions));
+            }
+
+            // Show place bid form
+            showPlaceBidForm(state.activeAuction);
+        } catch (err) {
+            // Check if already joined (fallback/success)
+            if (err.message && err.message.includes('already joined')) {
+                if (!state.joinedAuctions.includes(auctionId)) {
+                    state.joinedAuctions.push(auctionId);
+                    localStorage.setItem('joined_auctions', JSON.stringify(state.joinedAuctions));
+                }
+                showPlaceBidForm(state.activeAuction);
+            } else {
+                showToast(err.message || 'Failed to join auction', 'error');
+            }
+        } finally {
+            joinBtn.disabled = false;
+            joinBtn.innerHTML = '<i data-lucide="user-plus"></i> Join Auction';
+            lucide.createIcons();
+        }
+    });
+
+    // Quick Bid Buttons click handlers
+    document.querySelectorAll('.quick-bid-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const increment = parseFloat(e.currentTarget.getAttribute('data-increment'));
+            const currentPrice = state.activeAuction.current_bid || parseFloat(state.activeAuction.starting_bid);
+            bidInput.value = (currentPrice + increment).toFixed(2);
+            validateBidInput();
+        });
+    });
+
+    // Bid Input validation
+    const validateBidInput = () => {
+        if (!state.activeAuction) return;
+        const currentPrice = state.activeAuction.current_bid || parseFloat(state.activeAuction.starting_bid);
+        const enteredVal = parseFloat(bidInput.value);
+
+        if (isNaN(enteredVal) || enteredVal <= currentPrice) {
+            validationWarning.textContent = `Bid must be greater than current price of $${currentPrice.toFixed(2)}`;
+            validationWarning.classList.remove('hidden');
+            submitBidBtn.disabled = true;
+        } else {
+            validationWarning.classList.add('hidden');
+            submitBidBtn.disabled = false;
+        }
+    };
+
+    bidInput.addEventListener('input', validateBidInput);
+
+    // Place Bid form submit handler
+    placeBidForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!state.user || !state.activeAuction) return;
+        
+        const amount = parseFloat(bidInput.value);
+        const auctionId = state.activeAuction.id;
+        
+        const currentPrice = state.activeAuction.current_bid || parseFloat(state.activeAuction.starting_bid);
+        if (amount <= currentPrice) {
+            showToast('Your bid must be greater than the current bid.', 'error');
+            return;
+        }
+
+        try {
+            submitBidBtn.disabled = true;
+            submitBidBtn.textContent = 'Submitting...';
+
+            // Post the bid to backend matching PlaceBidRequest
+            await apiFetch(`/auction/${auctionId}/bid`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    auction_id: auctionId,
+                    amount: amount,
+                    bidder_id: state.user.id
+                })
+            });
+
+            showToast('Bid placed successfully!', 'success');
+            
+            // Refresh view and history
+            await fetchBidHistory(auctionId);
+            fetchAuctions(); // update dashboard feed
+        } catch (err) {
+            showToast(err.message || 'Failed to place bid', 'error');
+        } finally {
+            submitBidBtn.disabled = false;
+            submitBidBtn.innerHTML = 'Place Bid <i data-lucide="gavel"></i>';
+            lucide.createIcons();
         }
     });
 });

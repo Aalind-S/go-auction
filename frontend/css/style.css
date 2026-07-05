@@ -1081,3 +1081,221 @@ a:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   Bidding & Auction Details Modal
+   ========================================================================== */
+.modal-card.modal-lg {
+    max-width: 900px;
+    width: 90%;
+}
+
+.bid-modal-content {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 32px;
+    margin-top: 16px;
+}
+
+.details-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.auction-status-timer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.desc-text {
+    font-size: 0.95rem;
+    color: var(--text-sub);
+    line-height: 1.6;
+}
+
+.bid-pricing-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.price-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+}
+
+.price-box.highlighted {
+    background: rgba(6, 182, 212, 0.05);
+    border-color: rgba(6, 182, 212, 0.2);
+}
+
+.price-box .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.price-box .price-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.price-box .price-valueHighlight {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent-secondary);
+}
+
+.seller-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.seller-info svg {
+    width: 16px;
+    height: 16px;
+}
+
+.bidding-actions-section {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    padding: 20px;
+    border-radius: var(--radius-sm);
+}
+
+.cta-message {
+    font-size: 0.9rem;
+    color: var(--text-sub);
+    margin-bottom: 14px;
+    text-align: center;
+}
+
+.bid-input-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.bid-input-row .input-prefix-container {
+    flex-grow: 1;
+}
+
+.quick-bids-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.btn-xs {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+}
+
+.validation-warning {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--danger);
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+.history-panel {
+    border-left: 1px solid var(--border-glass);
+    padding-left: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 480px;
+}
+
+.history-panel h3 {
+    font-size: 1.2rem;
+    border-bottom: 1px solid var(--border-glass);
+    padding-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.bid-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    max-height: 380px;
+    padding-right: 8px;
+}
+
+.bid-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.bid-history-item .bidder-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bid-history-item .bidder-name {
+    font-weight: 600;
+    color: var(--text-sub);
+}
+
+.bid-history-item .bid-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.bid-history-item .bid-amt {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent-secondary);
+}
+
+.spinner.xs-spinner {
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+}
+
+.min-loader {
+    padding: 20px 0;
+}
+
+@media (max-width: 768px) {
+    .modal-card.modal-lg {
+        max-width: 550px;
+    }
+    
+    .bid-modal-content {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .history-panel {
+        border-left: none;
+        border-top: 1px solid var(--border-glass);
+        padding-left: 0;
+        padding-top: 24px;
+    }
+}
+

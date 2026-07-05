@@ -8,3 +8,8 @@ const (
 	AuctionStatusEnded      AuctionStatus = "ENDED"
 	AuctionStatusCancelled  AuctionStatus = "CANCELLED"
 )
+
+const (
+	AuctionNotFoundError  = "Auction not found"
+	AuctionNotActiveError = "Auction is not active"
+)

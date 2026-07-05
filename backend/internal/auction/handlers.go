@@ -3,6 +3,7 @@ package auction
 import (
 	"net/http"
 
+	"github.com/Aalind-S/go-auction/internal/common"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/google/uuid"
 )
@@ -22,15 +23,8 @@ func (h *Handler) RegisterAuction(c *gin.Context) {
 		return
 	}
 
-	userIDValue, exists := c.Get("userID")
-	if !exists {
-		c.JSON(401, gin.H{"error": "unauthorized"})
-		return
-	}
-
-	userID, ok := userIDValue.(uuid.UUID)
+	userID, ok := common.GetUserIDFromContext(c)
 	if !ok {
-		c.JSON(500, gin.H{"error": "invalid user context"})
 		return
 	}
 
@@ -77,15 +71,8 @@ func (h *Handler) GetAuctionByID(c *gin.Context) {
 
 func (h *Handler) UpdateAuction(c *gin.Context) {
 	auctionID, err := uuid.Parse(c.Param("id"))
-	userIDValue, exists := c.Get("userID")
-	if !exists {
-		c.JSON(401, gin.H{"error": "unauthorized"})
-		return
-	}
-
-	userID, ok := userIDValue.(uuid.UUID)
+	userID, ok := common.GetUserIDFromContext(c)
 	if !ok {
-		c.JSON(500, gin.H{"error": "invalid user context"})
 		return
 	}
 
@@ -115,15 +102,8 @@ func (h *Handler) DeleteAuction(c *gin.Context) {
 		return
 	}
 
-	userIDValue, exists := c.Get("userID")
-	if !exists {
-		c.JSON(401, gin.H{"error": "unauthorized"})
-		return
-	}
-
-	userID, ok := userIDValue.(uuid.UUID)
+	userID, ok := common.GetUserIDFromContext(c)
 	if !ok {
-		c.JSON(500, gin.H{"error": "invalid user context"})
 		return
 	}
 

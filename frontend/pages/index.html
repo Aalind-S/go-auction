@@ -198,6 +198,97 @@
         </div>
     </div>
 
+    <!-- AUCTION DETAILS & BIDDING MODAL -->
+    <div id="bid-modal" class="modal-overlay hidden">
+        <div class="modal-card glass-card modal-lg">
+            <div class="modal-header">
+                <h2 id="bid-modal-title">Auction Details</h2>
+                <button id="close-bid-modal-btn" class="btn-close-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <div class="bid-modal-content">
+                <!-- Left panel: Details & Bidding -->
+                <div class="details-panel">
+                    <div class="auction-status-timer">
+                        <span id="bid-modal-status" class="badge">ACTIVE</span>
+                        <span id="bid-modal-timer" class="timer"><i data-lucide="clock"></i> Loading timer...</span>
+                    </div>
+                    
+                    <p id="bid-modal-desc" class="desc-text"></p>
+                    
+                    <div class="bid-pricing-info">
+                        <div class="price-box">
+                            <span class="label">Starting Bid</span>
+                            <span id="bid-modal-starting-price" class="price-value">$0.00</span>
+                        </div>
+                        <div class="price-box highlighted">
+                            <span class="label">Current Bid</span>
+                            <span id="bid-modal-current-price" class="price-valueHighlight">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="seller-info">
+                        <i data-lucide="user"></i>
+                        <span>Seller: <strong id="bid-modal-seller">Loading...</strong></span>
+                    </div>
+
+                    <!-- Bidding Interaction Actions -->
+                    <div id="bidding-actions-section" class="bidding-actions-section">
+                        <!-- Join Auction CTA -->
+                        <div id="join-auction-container" class="hidden">
+                            <p class="cta-message">You need to register as a participant to bid on this auction.</p>
+                            <button id="join-auction-btn" class="btn btn-primary btn-block">
+                                <i data-lucide="user-plus"></i> Join Auction
+                            </button>
+                        </div>
+
+                        <!-- Place Bid Input Form -->
+                        <div id="place-bid-container" class="hidden">
+                            <form id="place-bid-form" class="modal-form">
+                                <div class="form-group">
+                                    <label for="bid-amount-input">Your Bid Amount ($)</label>
+                                    <div class="bid-input-row">
+                                        <div class="input-prefix-container flex-grow">
+                                            <span class="input-prefix">$</span>
+                                            <input type="number" id="bid-amount-input" required min="0.01" step="0.01" placeholder="Enter bid amount">
+                                        </div>
+                                        <button type="submit" id="submit-bid-btn" class="btn btn-primary">
+                                            Place Bid <i data-lucide="gavel"></i>
+                                        </button>
+                                    </div>
+                                    <span id="bid-validation-warning" class="validation-warning hidden">
+                                        Bid must be greater than current bid of $0.00
+                                    </span>
+                                </div>
+                                
+                                <!-- Quick Bid Suggestions -->
+                                <div class="quick-bids-row">
+                                    <button type="button" class="btn btn-secondary btn-xs quick-bid-btn" data-increment="10">+$10</button>
+                                    <button type="button" class="btn btn-secondary btn-xs quick-bid-btn" data-increment="50">+$50</button>
+                                    <button type="button" class="btn btn-secondary btn-xs quick-bid-btn" data-increment="100">+$100</button>
+                                    <button type="button" class="btn btn-secondary btn-xs quick-bid-btn" data-increment="500">+$500</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right panel: Bid History list -->
+                <div class="history-panel">
+                    <h3>Bid History</h3>
+                    <div id="bid-history-loader" class="loader-container min-loader hidden">
+                        <div class="spinner xs-spinner"></div>
+                    </div>
+                    <div id="bid-history-list" class="bid-history-list">
+                        <!-- Dynamically populated bid list -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications Container -->
     <div id="toast-container" class="toast-container"></div>
 
