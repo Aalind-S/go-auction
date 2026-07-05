@@ -17,6 +17,13 @@ type BidService struct {
 	auctionRepository auction.Repository
 }
 
+func NewBidService(repo Repository, auctionRepo auction.Repository) Service {
+	return &BidService{
+		repo:              repo,
+		auctionRepository: auctionRepo,
+	}
+}
+
 func (b *BidService) PlaceBid(req PlaceBidRequest, userID uuid.UUID) error {
 	// Validate the bid amount
 	if req.Amount <= 0 {

@@ -13,6 +13,8 @@ type Service interface {
 	GetAuctionByID(auctionID uuid.UUID) (*Auction, error)
 	UpdateAuction(auctionID uuid.UUID, request AuctionUpdateRequest, userID uuid.UUID) (*Auction, error)
 	DeleteAuction(auctionID uuid.UUID, userID uuid.UUID) error
+	JoinAuction(req *JoinAuctionRequest) error
+	LeaveAuction(auctionID uuid.UUID, userID uuid.UUID) error
 }
 
 type AuctionService struct {
@@ -159,7 +161,7 @@ func (s *AuctionService) UpdateAuction(auctionID uuid.UUID, request AuctionUpdat
 	}
 
 	// Update the auction in the repository
-	updatedAuction, err := s.repository.UpdateAuction(auctionID, updateData, userID)
+	updatedAuction, err := s.repository.UpdateAuction(auctionID, &updateData, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -175,4 +177,18 @@ func (s *AuctionService) DeleteAuction(auctionID uuid.UUID, userID uuid.UUID) er
 	}
 
 	return nil
+}
+
+func (s *AuctionService) JoinAuction(req *JoinAuctionRequest) error {
+	var auctionWatcher AuctionParticipant
+	auctionWatcher = AuctionParticipant{
+		AuctionID:           req.AuctionID,
+		UserID:              req.UserID,
+		NotificationEnabled: req.NotificationEnabled,
+	}
+	return s.repository.JoinAuction(&auctionWatcher)
+}
+
+func (s *AuctionService) LeaveAuction(auctionID uuid.UUID, userID uuid.UUID) error {
+	return s.repository.LeaveAuction(auctionID, userID)
 }

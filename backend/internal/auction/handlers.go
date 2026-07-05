@@ -6,6 +6,7 @@ import (
 	"github.com/Aalind-S/go-auction/internal/common"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Handler struct {
@@ -113,4 +114,58 @@ func (h *Handler) DeleteAuction(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "auction deleted successfully"})
+}
+
+func (h *Handler) JoinAuction(c *gin.Context) {
+	auctionID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid auction ID"})
+		return
+	}
+
+	userID, ok := common.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
+	var req JoinAuctionRequest
+	req = JoinAuctionRequest{
+		AuctionID:           auctionID,
+		UserID:              userID,
+		NotificationEnabled: true, // default to true, can be changed later
+	}
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = h.service.JoinAuction(&req)
+	if err == gorm.ErrDuplicatedKey {
+		c.JSON(400, gin.H{"error": "Already joined this auction"})
+		return
+	}
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to join auction"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "successfully joined auction"})
+}
+
+func (h *Handler) LeaveAuction(c *gin.Context) {
+	auctionID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid auction ID"})
+		return
+	}
+
+	userID, ok := common.GetUserIDFromContext(c)
+	if !ok {
+		return
+	}
+
+	err = h.service.LeaveAuction(auctionID, userID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to leave auction"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "successfully left auction"})
 }

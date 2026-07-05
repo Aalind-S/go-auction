@@ -1,6 +1,8 @@
 package auction
 
 import (
+	"errors"
+
 	uuid "github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -9,8 +11,10 @@ type Repository interface {
 	CreateAuction(auction *Auction) error
 	SearchAuctions(request SearchAuctionRequest) ([]Auction, error)
 	GetAuctionByID(auctionId uuid.UUID) (*Auction, error)
-	UpdateAuction(auctionID uuid.UUID, request AuctionUpdateData, userID uuid.UUID) (*Auction, error)
+	UpdateAuction(auctionID uuid.UUID, request *AuctionUpdateData, userID uuid.UUID) (*Auction, error)
 	DeleteAuction(auctionID uuid.UUID, userID uuid.UUID) error
+	JoinAuction(req *AuctionParticipant) error
+	LeaveAuction(auctionID uuid.UUID, userID uuid.UUID) error
 }
 
 type GormRepository struct {
@@ -76,11 +80,15 @@ func (r *GormRepository) GetAuctionByID(auctionId uuid.UUID) (*Auction, error) {
 	return auction, nil
 }
 
-func (r *GormRepository) UpdateAuction(auctionID uuid.UUID, request AuctionUpdateData, userID uuid.UUID) (*Auction, error) {
+func (r *GormRepository) UpdateAuction(auctionID uuid.UUID, request *AuctionUpdateData, userID uuid.UUID) (*Auction, error) {
 	auction := &Auction{}
-	err := r.db.First(auction, "id = ? AND seller_id = ? AND deleted_at IS NULL", auctionID, userID).Error
+	err := r.db.First(auction, "id = ? AND seller_id = ?", auctionID, userID).Error
 	if err != nil {
 		return nil, err
+	}
+
+	if request == nil {
+		return nil, errors.New("update request is required")
 	}
 
 	if request.Title != nil {
@@ -109,12 +117,31 @@ func (r *GormRepository) UpdateAuction(auctionID uuid.UUID, request AuctionUpdat
 
 func (r *GormRepository) DeleteAuction(auctionID uuid.UUID, userID uuid.UUID) error {
 	auction := &Auction{}
-	err := r.db.First(auction, "id = ? AND seller_id = ? AND deleted_at IS NULL", auctionID, userID).Error
+	err := r.db.First(auction, "id = ? AND seller_id = ?", auctionID, userID).Error
 	if err != nil {
 		return err
 	}
 
 	err = r.db.Delete(auction).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *GormRepository) JoinAuction(req *AuctionParticipant) error {
+	return r.db.Create(req).Error
+}
+
+func (r *GormRepository) LeaveAuction(auctionID uuid.UUID, userID uuid.UUID) error {
+	participant := &AuctionParticipant{}
+	err := r.db.First(participant, "auction_id = ? AND user_id = ?", auctionID, userID).Error
+	if err != nil {
+		return err
+	}
+
+	err = r.db.Delete(participant).Error
 	if err != nil {
 		return err
 	}

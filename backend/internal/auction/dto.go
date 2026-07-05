@@ -99,3 +99,9 @@ type AuctionUpdateData struct {
 	StartsAt    *time.Time
 	EndsAt      *time.Time
 }
+
+type JoinAuctionRequest struct {
+	AuctionID           uuid.UUID `json:"auction_id" binding:"required"`
+	UserID              uuid.UUID `json:"user_id" binding:"required"`
+	NotificationEnabled bool      `json:"notification_enabled"`
+}

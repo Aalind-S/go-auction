@@ -11,4 +11,6 @@ func RegisterAuctionRoutes(router *gin.RouterGroup, handler *Handler) {
 	auctionGroup.POST("/create", handler.RegisterAuction)
 	auctionGroup.GET("/search", handler.SearchAuctions)
 	auctionGroup.DELETE("/:id", handler.DeleteAuction)
+	auctionGroup.POST("/:id/join", handler.JoinAuction)
+	auctionGroup.DELETE("/:id/leave", handler.LeaveAuction)
 }
